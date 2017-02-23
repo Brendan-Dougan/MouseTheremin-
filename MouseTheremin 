@@ -1,0 +1,25 @@
+SynthDef(\mouseTheremin, {
+
+	arg pitchLo = 30, pitchHi = 80, pitchres=1.0, bwfreq=800, filterfreq=1500, lfofreq=3, atk=0.001, rel=0.5, crv = -2;
+	var osc, freq, env, envgate, pitch, amp, z, y, saw1, octopus;
+	amp = MouseX.kr(-40, 10).dbamp;
+	pitch = MouseY.kr(minval:pitchHi, maxval:pitchLo, lag:0.0001).round(pitchres);
+	envgate = MouseButton.kr(lag:0.0001);
+	env = EnvGen.ar( envelope:Env.asr( attackTime: atk, releaseTime:rel, curve:crv), gate:envgate );
+	freq = pitch.midicps;
+	osc = Formant.ar( fundfreq:freq, formfreq: SinOsc.kr(lfofreq).range(100, 1500), bwfreq:bwfreq );
+	octopus = (pitch -24).midicps;
+	saw1 = Saw.ar(octopus, 0.5);
+	osc = Mix.ar( [osc, saw1] );
+	osc = DFM1.ar(osc, filterfreq);
+
+	z = Decay.ar(Dust.ar(1,0.5), 0.3, WhiteNoise.ar);
+DelayN.ar(z, 0.2, 0.2, 1, z);
+
+	Out.ar(0, osc*env*amp);
+
+}).add;
+
+
+
+a = Synth(\mouseTheremin);
